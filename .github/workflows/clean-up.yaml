@@ -41,7 +41,7 @@ jobs:
           cache-dependency-path: infra/yarn.lock
       - name: Install project dependencies
         run: cd infra && yarn install
-      - name: Deploy IAM
+      - name: CDK destroy
         working-directory: infra
         run: |
-          yarn cdk destroy --all
+          yarn cdk destroy --all --force
