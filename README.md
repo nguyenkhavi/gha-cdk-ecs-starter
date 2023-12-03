@@ -1,6 +1,6 @@
 # AWS CDK Node.js App with GitHub Actions
 
-[![GitHub Actions Status](https://github.com/your-username/your-repo/workflows/CI-CD/badge.svg)](https://github.com/your-username/your-repo/actions)
+[![GitHub Actions Status](https://github.com/nguyenkhavi/gha-cdk-ecs-starter/workflows/CI-CD/badge.svg)](https://github.com/nguyenkhavi/gha-cdk-ecs-starter/actions)
 
 ## Overview
 
