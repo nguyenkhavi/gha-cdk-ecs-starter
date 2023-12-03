@@ -12,7 +12,7 @@ COPY yarn.lock ./
 RUN npm install
 
 # Copy the application code to the container
-COPY app.js app.js
+COPY src/app.js app.js
 
 # Expose ports 80, 7007, and 11011
 EXPOSE 80
