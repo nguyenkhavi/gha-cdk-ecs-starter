@@ -6,7 +6,7 @@ app.get("/", (req, res) => {
   res.send(`Hello, this is ${req.headers.host}!`);
 });
 
-const ports = [80];
+const ports = [80, 7007];
 
 ports.forEach((port) => {
   app.listen(port, () => {

@@ -13,8 +13,8 @@ import { ECRStack } from "./stacks/ecr-stack";
 import { ECSStack } from "./stacks/ecs-stack";
 
 const tags = {
-  "ripid:application-id": APPLICATION_ID,
-  "ripid:environment": ENVIRONMENT,
+  "company:application-id": APPLICATION_ID,
+  "company:environment": ENVIRONMENT,
 };
 const env = { account: `${AWS_ACCOUNT_ID}`, region: `${AWS_REGION}` };
 
