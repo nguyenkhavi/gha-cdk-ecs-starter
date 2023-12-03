@@ -1,0 +1,125 @@
+name: Development
+on:
+  workflow_dispatch:
+concurrency: development
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+  APPLICATION_ID: ${{ vars.APPLICATION_ID }}
+  ENVIRONMENT: ${{ github.ref_name }}
+  IMAGE_TAG: ${{ github.run_number }}-${{ github.run_attempt}}
+  CPU_SPEC: ${{ vars.CPU_SPEC }}
+  MEMORY_SPEC: ${{ vars.MEMORY_SPEC }}
+  NEXT_PUBLIC_BASE_URL: ${{ vars.NEXT_PUBLIC_BASE_URL }}
+  BUILD_ID: ${{ github.run_id }}
+  BUILD_NUMBER: ${{ github.run_number }}-${{ github.run_attempt}}
+  BUILD_SOURCE_VERSION: ${{ github.sha }}
+
+jobs:
+  iam_deploy:
+    name: Deploy IAM Task execution Role Development
+    runs-on: ubuntu-latest
+    environment: Development
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE}}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "yarn"
+          cache-dependency-path: infra/yarn.lock
+      - name: Install project dependencies
+        run: cd infra && yarn install
+      - name: Deploy IAM
+        working-directory: infra
+        run: |
+          yarn cdk:deploy:iam-stack
+  ecr_deploy:
+    needs: iam_deploy
+    name: Deploy ECR Task execution Development
+    runs-on: ubuntu-latest
+    environment: Development
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE}}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "yarn"
+          cache-dependency-path: infra/yarn.lock
+      - name: Install project dependencies
+        run: cd infra && yarn install
+      - name: Deploy ECR
+        working-directory: infra
+        run: |
+          yarn cdk:deploy:ecr-stack
+  docker_deploy:
+    needs: ecr_deploy
+    name: Build Development
+    runs-on: ubuntu-latest
+    environment: Development
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Build, tag, and push image to Amazon ECR
+        working-directory: .
+        run: |
+          docker build -t $APPLICATION_ID-$ENVIRONMENT . \
+          --build-arg NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL \
+          --build-arg BUILD_ID=$BUILD_ID \
+          --build-arg BUILD_NUMBER=$BUILD_NUMBER \
+          --build-arg BUILD_SOURCE_VERSION=$BUILD_SOURCE_VERSION
+          docker tag $APPLICATION_ID-$ENVIRONMENT:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$APPLICATION_ID-$ENVIRONMENT:$IMAGE_TAG
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$APPLICATION_ID-$ENVIRONMENT:$IMAGE_TAG
+  ecs_deploy:
+    needs: docker_deploy
+    name: Deploy ECS Task execution Development
+    runs-on: ubuntu-latest
+    environment: Development
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE}}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "yarn"
+          cache-dependency-path: infra/yarn.lock
+      - name: Install project dependencies
+        run: cd infra && yarn install
+      - name: Deploy ECS
+        working-directory: infra
+        run: |
+          yarn cdk:deploy:ecs-stack
