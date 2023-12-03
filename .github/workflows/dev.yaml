@@ -36,6 +36,10 @@ jobs:
           node-version: 18
           cache: "yarn"
           cache-dependency-path: infra/yarn.lock
+      - name: Bootstrap CDK
+        working-directory: infra
+        run: |
+          yarn cdk bootstrap | true
       - name: Install project dependencies
         run: cd infra && yarn install
       - name: Deploy IAM
