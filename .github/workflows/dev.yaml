@@ -1,5 +1,8 @@
 name: Development
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 concurrency: development
 env:
@@ -36,12 +39,12 @@ jobs:
           node-version: 18
           cache: "yarn"
           cache-dependency-path: infra/yarn.lock
+      - name: Install project dependencies
+        run: cd infra && yarn install
       - name: Bootstrap CDK
         working-directory: infra
         run: |
           yarn cdk bootstrap | true
-      - name: Install project dependencies
-        run: cd infra && yarn install
       - name: Deploy IAM
         working-directory: infra
         run: |
