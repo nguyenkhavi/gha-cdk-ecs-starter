@@ -113,9 +113,9 @@ export class ECSStack extends Stack {
         path: "/",
         port: "80",
         healthyHttpCodes: "200",
-        interval: Duration.seconds(10),
+        interval: Duration.seconds(5),
         unhealthyThresholdCount: 2,
-        timeout: Duration.seconds(8),
+        timeout: Duration.seconds(4),
         healthyThresholdCount: 2,
       });
     });
