@@ -44,7 +44,7 @@ jobs:
       - name: Bootstrap CDK
         working-directory: infra
         run: |
-          yarn cdk bootstrap | true
+          yarn cdk bootstrap
       - name: Deploy IAM
         working-directory: infra
         run: |
